@@ -19,7 +19,6 @@ static void Lcd_Write_Data(uint8_t data);
 static void Address_set(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
 static void Lcd_Reset(void);
 static void Lcd_Draw_Color(unsigned int color);
-static uint8_t reverse_bits(uint8_t b);
 static uint16_t grid_lane_x(int row, int ground_row, uint16_t ground_x, uint16_t air_x);
 static void ClearMassDMA(uint16_t length, uint16_t width, uint16_t d_l, uint16_t d_w, uint16_t color);
 static void lcd_dma_end(void);
@@ -114,9 +113,12 @@ void Lcd_Init(void) {
     Lcd_Write_Data(0x0A);
     Lcd_Write_Data(0x80);
 
-    Lcd_Write_Command(0xB1); //частота кадров
-    Lcd_Write_Data(0xB0);
-    Lcd_Write_Data(0x11);
+    //ЧАСТОТА ОБНОВЛЕНИЯ КАДРОВ
+    Lcd_Write_Command(0xB1); 
+    // Lcd_Write_Data(0xB0);
+    // Lcd_Write_Data(0x11);
+    Lcd_Write_Data(0x00);
+    Lcd_Write_Data(0x18);      //0x1F - 61hz, 0x1B - 70 hz, 0x18 - 79 Hz 
 
     Lcd_Write_Command(0xB4);  //режим инверсии, как пиксели будут переключатся между состояниями
     Lcd_Write_Data(0x02);
@@ -124,7 +126,7 @@ void Lcd_Init(void) {
     Lcd_Write_Command(0xB6);  // режим отображения
     Lcd_Write_Data(0x02);
     Lcd_Write_Data(0x22);
-
+    
     Lcd_Write_Command(0xB7);  // настройка источника данных
     Lcd_Write_Data(0xC6);
 
@@ -134,7 +136,7 @@ void Lcd_Init(void) {
     // ПАРАМЕТРЫ ИНТЕРФЕЙСА
     Lcd_Write_Command(0xE9);  
     Lcd_Write_Data(0x00);
-    //КОНТРОЛЬ ДОСТУПА К ПАМЯТИ
+    //ЗАДАНИЕ ОРИЕНТАЦИИ 
     Lcd_Write_Command(0x36);  //MAC/MDAD-указывает направление, в котором данные записываются в LCD, влияет на ориентацию дисплея
     Lcd_Write_Data(0x08);     //0x28 | 0x80 - ровно, относительно надписи, 0x88 | 0x40 - влево, 0x08 - вправо, 0x28 | 0x40 - 180 относительно надписи "Отладочная плата"
     // ФОРМАТ ПИКСЕЛЕЙ
@@ -156,7 +158,7 @@ void Lcd_Init(void) {
     Lcd_Write_Data(0x0E);
     Lcd_Write_Data(0x18);
     Lcd_Write_Data(0x1B);
-    Lcd_Write_Data(0x0F);    
+    Lcd_Write_Data(0x0F);   
     //NEGATIVE GAMMA CORRECTION
     Lcd_Write_Command(0xE1);    
     Lcd_Write_Data(0x00);
@@ -173,11 +175,12 @@ void Lcd_Init(void) {
     Lcd_Write_Data(0x09);
     Lcd_Write_Data(0x32);
     Lcd_Write_Data(0x36);
-    Lcd_Write_Data(0x0F);    
-    //EXIT SLEEP
+    Lcd_Write_Data(0x0F);   
+
+    //ВЫХОД ИЗ СПЯЩЕГО РЕЖИМА
     Lcd_Write_Command(0x11);    
     HAL_DelayMs(120);    
-    //TURN ON DISPLAY
+    //ВКЛЮЧЕНИЕ ДСИПЛЕЯ
     Lcd_Write_Command(0x29);    
     Lcd_unselect();
 } 
@@ -208,7 +211,6 @@ void LCD_Clear(unsigned int color)
     }
     HAL_GPIO_WritePin(GPIO_0, CS, 1);
 }
-
 
 /**
  * @brief          Отрисовка залитого прямоугольника на дисплее
@@ -250,7 +252,7 @@ void rect(uint16_t length, uint16_t width, uint16_t y, uint16_t x, uint16_t colo
  * @param b     Заданный исходный байт
  * @return      Байт с развёрнутым порядком бит
  */
-static uint8_t reverse_bits(uint8_t b) {
+uint8_t reverse_bits(uint8_t b) {
     b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
     b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
     b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
@@ -578,10 +580,12 @@ static void ClearMassDMA(uint16_t length, uint16_t width, uint16_t d_l, uint16_t
 }
 
 /** 
- * @brief
- * @param length Длина
- * @param width  Ширина
- * @param d_l
+ * @brief        Построчная заливка заданной области экрана 
+ * @param length Длина закрашиваемой зоны
+ * @param width  Ширина закрашиваемой зоны
+ * @param d_l    Координата по вертикали
+ * @param d_w    Координата по горизонтали
+ * @param color  Цвет заливки 
 */
 void ClearMassDMA_Fast(uint16_t length, uint16_t width, uint16_t d_l, uint16_t d_w, uint16_t color)
 {
