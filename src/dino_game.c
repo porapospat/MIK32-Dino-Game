@@ -131,7 +131,7 @@ int delay_ms = DINO_DELAY_START;
 /* Private functions ---------------------------------------------------------*/
 
 /**
- * @brief            Отрисовка спрайта в клетке поля
+ * @brief  Отрисовка спрайта в клетке поля
  */
 static void dino_draw_sprite_cell(int col, int row, const uint8_t *bmp)
 {
@@ -403,7 +403,7 @@ void DinoGame_Reset(void)
  * @brief  Один кадр: ввод джойстика, логика, отрисовка
  * @return 1 — столкновение, 0 — игра продолжается
  */
-int DinoGame_Tick(void)
+bool DinoGame_Tick(void)
 {
     JoystickState_t joy;
     /* Чтение положения джойстика и состояния кнопки */

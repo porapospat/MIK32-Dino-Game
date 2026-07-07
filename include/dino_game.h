@@ -6,9 +6,12 @@
 #ifndef DINO_GAME_H
 #define DINO_GAME_H
 
+/* Includes ------------------------------------------------------------------*/
 #include "type.h"
 #include "joystick.h"
+#include <stdbool.h>
 
+/* Define --------------------------------------------------------------------*/
 #define DINO_SPRITE_W         32
 #define DINO_SPRITE_H         32
 #define DINO_SPRITE_SCALE     1
@@ -27,8 +30,21 @@
 #define DINO_DELAY_START      40
 #define DINO_DELAY_STEP       50
 
+/* Exported functions --------------------------------------------------------*/
+/**
+ * @brief  Инициализация игры - Отриосвка заставки и первого кадра
+ */
 void DinoGame_Init(void);
-void DinoGame_Reset(void);
-int DinoGame_Tick(void);
 
-#endif /* DINO_GAME_H */
+/**
+ * @brief  Сброс счёта, препятствий и перерисовка поля
+ */
+void DinoGame_Reset(void);
+
+/**
+ * @brief  Один кадр: ввод джойстика, логика, отрисовка
+ * @return 1 — столкновение, 0 — игра продолжается
+ */
+bool DinoGame_Tick(void);
+
+#endif /* __DINO_GAME_H__ */

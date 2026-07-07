@@ -3,16 +3,16 @@
  * @brief 
  */
 
+/* Includes ------------------------------------------------------------------*/
 #include "system_config.h"
-#include "lcd.h"
-#include "bus_spi.h"
-#include "bdma.h"
-
 #include "joystick.h"
 #include "dino_game.h"
+#include "lcd.h"
 
+/* Private function prototypes -----------------------------------------------*/
 static void periph_Init(void);
 
+/* Private functions ---------------------------------------------------------*/
 int main(void)
 {
     SystemClock_Config();
@@ -31,6 +31,7 @@ int main(void)
     }
 }
 
+/** @brief Инициализация переферии */
 static void periph_Init(void)
 {
     HAL_Init();

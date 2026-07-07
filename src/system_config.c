@@ -1,15 +1,13 @@
 /**
  * @file    system_config.h
- * @brief   Базовай конфигурация MIK32
+ * @brief   Базовая конфигурация MIK32
  */ 
 
 /* Includes ------------------------------------------------------------------*/
 #include "system_config.h"
 
 /* Private functions ---------------------------------------------------------*/
-/**
- * @brief Конфигурация источника тактового сигнала
- */
+/** @brief Конфигурация источника тактового сигнала */
 void SystemClock_Config(void) {
     PCC_InitTypeDef PCC_OscInit = {0};
 

@@ -3,17 +3,19 @@
  * @brief Драйвер DMA
  */
 
+/* Includes ------------------------------------------------------------------*/
 #include "bdma.h"
-#include "xprintf.h"
 
+/* Private variables ---------------------------------------------------------*/
 DMA_InitTypeDef hdma;
 DMA_ChannelHandleTypeDef hdma_ch0;
 
 static uint8_t s_dma_line_buf[DMA_BUFFER_SIZE];
 uint8_t *DMA_BUF = s_dma_line_buf;
 
-static void DMA_CH0_Init(DMA_InitTypeDef *hdma);
-
+/**
+ * @brief   Инициализация контроллера DMA
+ */
 void DMA_Init(void)
 {
     hdma.Instance = DMA_CONFIG;
@@ -25,7 +27,11 @@ void DMA_Init(void)
     DMA_CH0_Init(&hdma);
 }
 
-static void DMA_CH0_Init(DMA_InitTypeDef *hdma)
+/**
+ * @brief       Инициализация канала CH0 
+ * @param  hdma Обработчик DMA
+ */
+void DMA_CH0_Init(DMA_InitTypeDef *hdma)
 {
     hdma_ch0.dma = hdma;
     hdma_ch0.ChannelInit.Channel = DMA_CHANNEL_0;

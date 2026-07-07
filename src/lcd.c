@@ -73,8 +73,8 @@ static void Address_set(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
     Lcd_Write_Data(y1 & 0xFF);
     Lcd_Write_Data(y2 >> 8);
     Lcd_Write_Data(y2 & 0xFF);
-
-    Lcd_Write_Command(0x2c); //начать запись
+    /* начать запись */
+    Lcd_Write_Command(0x2c); 
 }
 
 /** @brief Аппаратный сброс дисплея */
@@ -404,7 +404,7 @@ static void lcd_dma_begin(uint16_t length, uint16_t width, uint16_t d_l, uint16_
 }
 
 /**
- * @brief   Завершение SPI-сессии после построчной DMA-отрисовки
+ * @brief   Завершение SPI-сессии 
  */
 static void lcd_dma_end(void)
 {
@@ -577,7 +577,12 @@ static void ClearMassDMA(uint16_t length, uint16_t width, uint16_t d_l, uint16_t
     lcd_dma_end();
 }
 
-
+/** 
+ * @brief
+ * @param length Длина
+ * @param width  Ширина
+ * @param d_l
+*/
 void ClearMassDMA_Fast(uint16_t length, uint16_t width, uint16_t d_l, uint16_t d_w, uint16_t color)
 {
     Lcd_select();

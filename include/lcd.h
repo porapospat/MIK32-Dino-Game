@@ -15,9 +15,15 @@
 #include "bdma.h"
 
 /* Exported functions ------------------------------------------------------- */
+/** @brief Инициализация дисплея */
 void Lcd_Init(void);
 
+/**
+ * @brief           Очищает весь экран, заполняя его цветом color
+ * @param color     Новый цвет экрана 
+ */
 void LCD_Clear(unsigned int color);
+
 void ClearMassDMA_Fast(uint16_t length, uint16_t width, uint16_t d_l, uint16_t d_w, uint16_t color);
 
 void drawChar(uint16_t x, uint16_t y, char ch, uint16_t color, uint16_t bg, uint8_t scale);
@@ -31,4 +37,4 @@ void grid_cell_to_pixel(int col, int row, uint16_t origin_y, uint16_t cell_pitch
 void drawPixel(uint16_t x, uint16_t y, uint16_t color);
 void rect(uint16_t length, uint16_t width, uint16_t y, uint16_t x, uint16_t color);
 
-#endif /* LCD_H */
+#endif /* __LCD_H__ */

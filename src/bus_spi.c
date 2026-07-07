@@ -10,6 +10,7 @@
 /* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi0;
 SPI_HandleTypeDef hspi1;
+
 /* Private functions ---------------------------------------------------------*/
 /**
  * @brief        Инициализация SPI0 в режиме Master

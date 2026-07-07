@@ -3,9 +3,13 @@
  * @brief Драйвер GPIO
  */
 
+/* Includes ------------------------------------------------------------------*/
 #include "bgpio.h"
-#include "xprintf.h"
 
+/* Private functions ---------------------------------------------------------*/
+/**
+ * @brief  Инициализация выводов GPIO дисплея и шины SPI
+ */
 void GPIO_Init(void)
 {
     GPIO_InitTypeDef GPIO_InitStruct = {0};
