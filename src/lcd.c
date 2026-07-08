@@ -203,9 +203,9 @@ static void Lcd_Draw_Color(unsigned int color)
 void LCD_Clear(unsigned int color) 
 {
     HAL_GPIO_WritePin(GPIO_0, CS, 0);
-    Address_set(0, 0, 480 - 1, 320 - 1); // размер экрана
-    for (int col = 0; col < 320; col++){
-        for (int row = 0; row < 480; row++) {
+    Address_set(0, 0, TFT_WIDTH - 1, TFT_HEIGHT - 1); // размер экрана
+    for (int col = 0; col < TFT_HEIGHT; col++){
+        for (int row = 0; row < TFT_WIDTH; row++) {
             Lcd_Draw_Color(color);
         }
     }
@@ -596,7 +596,7 @@ void ClearMassDMA_Fast(uint16_t length, uint16_t width, uint16_t d_l, uint16_t d
     if (!(hspi0.Instance->ENABLE & SPI_ENABLE_M))
         __HAL_SPI_ENABLE(&hspi0);
 
-    static uint8_t line_buf[480 * 3];
+    static uint8_t line_buf[TFT_WIDTH * 3];
 
     uint8_t red   = (color >> 8) & 0xF8;
     uint8_t green = (color >> 3) & 0xFC;

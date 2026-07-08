@@ -10,8 +10,8 @@
 #include <stdbool.h>
 
 /* Define --------------------------------------------------------------------*/
-#define MAX_OBSTACLES         8     /* макс. количество препятствий в очереди */
-#define MIN_OBSTACLE_DISTANCE 3     /* мин. расстояние между препятствиями, клетки */
+#define MAX_OBSTACLES         6     /* макс. количество препятствий в очереди */
+#define MIN_OBSTACLE_DISTANCE 4     /* мин. расстояние между препятствиями, клетки */
 #define DINO_FIELD_COLS       11    /* видимых столбцов (420 px / DINO_CELL_W) */
 #define DINO_FIELD_ROWS       2     /* дорожки: 0 — воздух, 1 — земля */
 
@@ -24,11 +24,20 @@ typedef struct {
     bool down;        /* Флаг приседа динозаврика */
 }Dino;
 
+/* Тип препятствия */
+typedef enum {
+    OBSTACLE_CACTUS = 0,     /* кактус на земле — перепрыгивать */
+    OBSTACLE_BIRD_HIGH = 1,  /* птица высоко — не прыгать */
+    OBSTACLE_BIRD_LOW = 2,   /* птица низко — пригнуться */
+} ObstacleKind;
+
 /* Структура для отображения препятствий на поле */
 typedef struct {
-    int position_row[MAX_OBSTACLES]; /* Массив для хранения позиций препятствий в ряду */
-    int position_col[MAX_OBSTACLES]; /* Массив для хранения позиций препятствий в столбце */
+    int position_row[MAX_OBSTACLES];      /* дорожка препятствия */
+    int position_col[MAX_OBSTACLES];      /* столбец препятствия */
+    ObstacleKind kind[MAX_OBSTACLES];     /* тип препятствия */
 }Obstacles;
+
 
 /* Объедение режима игры*/
 typedef enum {
