@@ -1,13 +1,12 @@
 /**
  * @file  main.c
- * @brief 
+ * @brief Игра Dino Game для микроконтроллера MIK32: управление через джойстик 
+ *        с выводом на TFT-дисплей ILI9341
  */
 
 /* Includes ------------------------------------------------------------------*/
 #include "system_config.h"
-#include "joystick.h"
 #include "dino_game.h"
-#include "lcd.h"
 
 /* Private function prototypes -----------------------------------------------*/
 static void periph_Init(void);
@@ -19,15 +18,7 @@ int main(void)
     periph_Init();
 
     while (1) {
-        if (DinoGame_Tick()) {
-            while (!Joystick_IsPressed()) {
-                HAL_DelayMs(50);
-            }
-            while (Joystick_IsPressed()) {
-                HAL_DelayMs(50);
-            }
-            DinoGame_Reset();
-        }
+        DinoGame_Tick();
     }
 }
 

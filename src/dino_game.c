@@ -5,35 +5,30 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "dino_game.h"
-#include "lcd.h"
-#include "mik32_hal.h"
-
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
 
 /* Private variables ---------------------------------------------------------*/
-/* статические элементы игры */
+/* луна */
 static const uint8_t moon [] = {
-    0xff, 0xe0, 0x00, 0x00, 0x7f, 0xf8, 0x00, 0x00, 0x0f, 0xfe, 0x00, 0x00, 0x07, 0xff, 0x00, 0x00, 
-	0x03, 0xff, 0x80, 0x00, 0x01, 0xff, 0xc0, 0x00, 0x00, 0xff, 0xe0, 0x00, 0x00, 0xff, 0xe0, 0x00, 
-	0x00, 0xff, 0xf8, 0x00, 0x00, 0x7f, 0xf8, 0x00, 0x00, 0x7f, 0xf8, 0x00, 0x00, 0x7f, 0xf8, 0x00, 
-	0x00, 0x7f, 0xfc, 0x00, 0x00, 0x7f, 0xfc, 0x00, 0x00, 0x7f, 0xfc, 0x00, 0x00, 0x3f, 0xfc, 0x00, 
-	0x00, 0x3f, 0xfc, 0x00, 0x00, 0x3f, 0xfc, 0x00, 0x00, 0x3f, 0xfc, 0x00, 0x00, 0x3f, 0xf8, 0x00, 
-	0x00, 0x7f, 0xf8, 0x00, 0x00, 0x7f, 0xe0, 0x00, 0x00, 0xff, 0xe0, 0x00, 0x01, 0xff, 0xc0, 0x00, 
-	0x03, 0xff, 0x80, 0x00, 0x03, 0xff, 0x00, 0x00, 0x0f, 0xfe, 0x00, 0x00, 0x3f, 0xf8, 0x00, 0x00, 
-	0xff, 0xe0, 0x00, 0x00, 0xff, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    0x7e, 0x00, 0x00, 0x00, 0xff, 0xc0, 0x00, 0x00, 0x1f, 0xf0, 0x04, 0x00, 0x07, 0xf8, 0x0c, 0x00, 
+	0x07, 0xf8, 0x1e, 0x00, 0x03, 0xfe, 0x04, 0x00, 0x01, 0xfe, 0x04, 0x00, 0x01, 0xff, 0x00, 0x00, 
+	0x21, 0xff, 0x80, 0x00, 0x60, 0xff, 0x80, 0x00, 0xf0, 0xff, 0x80, 0x00, 0x20, 0xff, 0x80, 0x00, 
+	0x20, 0xff, 0x80, 0x00, 0x00, 0xff, 0x80, 0x00, 0x00, 0xff, 0x80, 0x00, 0x01, 0xff, 0x00, 0x00, 
+	0x01, 0xfe, 0x00, 0x00, 0x03, 0xfe, 0x00, 0x00, 0x07, 0xf8, 0x00, 0x00, 0x07, 0xf8, 0x00, 0x00, 
+	0x1f, 0xf0, 0x10, 0x00, 0xff, 0xc0, 0x10, 0x00, 0x7e, 0x00, 0x54, 0x00, 0x00, 0x00, 0x38, 0x00, 
+	0x00, 0x01, 0xff, 0x00, 0x00, 0x00, 0x38, 0x00, 0x00, 0x00, 0x54, 0x00, 0x00, 0x00, 0x10, 0x00, 
+	0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
+/* солнце */
 static const uint8_t sun [] = {
-    0x01, 0xff, 0xfe, 0x00, 0x01, 0xff, 0xfe, 0x00, 0x0f, 0xff, 0xff, 0x80, 0x0f, 0xff, 0xff, 0x80, 
-	0x3f, 0xff, 0xff, 0xe0, 0x7f, 0xff, 0xff, 0xf8, 0x7f, 0xff, 0xff, 0xf8, 0x7f, 0xff, 0xff, 0xf8, 
-	0xff, 0xff, 0xff, 0xfc, 0xff, 0xff, 0xff, 0xfc, 0xff, 0xff, 0xff, 0xfe, 0xff, 0xff, 0xff, 0xfe, 
-	0xff, 0xff, 0xff, 0xfe, 0xff, 0xff, 0xff, 0xfe, 0xff, 0xff, 0xff, 0xfe, 0xff, 0xff, 0xff, 0xfe, 
-	0xff, 0xff, 0xff, 0xfe, 0xff, 0xff, 0xff, 0xfe, 0xff, 0xff, 0xff, 0xfe, 0xff, 0xff, 0xff, 0xfe, 
-	0xff, 0xff, 0xff, 0xfc, 0xff, 0xff, 0xff, 0xfc, 0xff, 0xff, 0xff, 0xfc, 0x7f, 0xff, 0xff, 0xf8, 
-	0x7f, 0xff, 0xff, 0xf8, 0x3f, 0xff, 0xff, 0xe0, 0x3f, 0xff, 0xff, 0xe0, 0x0f, 0xff, 0xff, 0x80, 
-	0x0f, 0xff, 0xff, 0x80, 0x01, 0xff, 0xfe, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    0x01, 0xfc, 0x00, 0x00, 0x07, 0xff, 0x00, 0x00, 0x0f, 0xff, 0x80, 0x00, 0x1f, 0xff, 0xc0, 0x00, 
+	0x3f, 0xff, 0xe0, 0x00, 0x7f, 0xff, 0xf0, 0x00, 0x7f, 0xff, 0xf0, 0x00, 0xff, 0xff, 0xf0, 0x00, 
+	0xff, 0xff, 0xf8, 0x00, 0xff, 0xff, 0xf8, 0x00, 0xff, 0xff, 0xf8, 0x00, 0xff, 0xff, 0xf8, 0x00, 
+	0xff, 0xff, 0xf8, 0x00, 0xff, 0xff, 0xf0, 0x00, 0x7f, 0xff, 0xf0, 0x00, 0x7f, 0xff, 0xf0, 0x00, 
+	0x3f, 0xff, 0xe0, 0x00, 0x1f, 0xff, 0xc0, 0x00, 0x0f, 0xff, 0x80, 0x00, 0x07, 0xff, 0x00, 0x00, 
+	0x00, 0xf8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
 /* препятствие 1 - Птеродактиль в положении взмаха */
@@ -108,7 +103,7 @@ static const uint8_t dino_dead[] = {
 	0x03, 0xc1, 0x80, 0x00, 0x03, 0x01, 0x80, 0x00, 0x03, 0x01, 0x80, 0x00, 0x03, 0xc1, 0xc0, 0x00
 };
 
-/* положение динозаврика в забеге 1*/
+/* положение динозаврика в забеге 1 */
 static const uint8_t dino_run1x[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x7f, 0xf8, 0x00, 0x01, 0xff, 0xfc, 0x00, 0x01, 0xcf, 0xfc, 
 	0x00, 0x01, 0xcf, 0xfc, 0x00, 0x01, 0xff, 0xfc, 0x00, 0x01, 0xff, 0xfc, 0x00, 0x01, 0xff, 0xfc, 
@@ -120,7 +115,7 @@ static const uint8_t dino_run1x[] = {
 	0x00, 0xc1, 0x80, 0x00, 0x00, 0xf1, 0x80, 0x00, 0x00, 0x01, 0x80, 0x00, 0x00, 0x01, 0xc0, 0x00
 };
 
-/* положение динозаврика в забеге 2*/
+/* положение динозаврика в забеге 2 */
 static const uint8_t dino_run2x[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x7f, 0xf8, 0x00, 0x01, 0xff, 0xfc, 0x00, 0x01, 0xcf, 0xfc, 
 	0x00, 0x01, 0xcf, 0xfc, 0x00, 0x01, 0xff, 0xfc, 0x00, 0x01, 0xff, 0xfc, 0x00, 0x01, 0xff, 0xfc, 
@@ -132,7 +127,7 @@ static const uint8_t dino_run2x[] = {
 	0x03, 0x80, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x03, 0xc0, 0x00, 0x00
 };
 
-/* положение динозаврика в присяде 1*/
+/* положение динозаврика в присяде 1 */
 static const uint8_t dino_duck1x[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
@@ -144,7 +139,7 @@ static const uint8_t dino_duck1x[] = {
     0x07, 0xfc, 0x60, 0x00, 0x06, 0x3c, 0x60, 0x00, 0x06, 0x30, 0x70, 0x00, 0x07, 0xbc, 0x00, 0x00
 };
 
-/* положение динозаврика в присяде 2*/
+/* положение динозаврика в присяде 2 */
 static const uint8_t dino_duck2x[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
@@ -156,28 +151,99 @@ static const uint8_t dino_duck2x[] = {
     0x07, 0x8c, 0x60, 0x00, 0x06, 0x0e, 0x70, 0x00, 0x06, 0x00, 0x00, 0x00, 0x07, 0x80, 0x00, 0x00
 };
 
-static Dino dino;                          // состояние динозаврика
-static Obstacles obstacles;                // препятствия на поле
-static uint32_t score;                     // счётчик игры
-static uint32_t frame;
-static int delay_ms = DINO_DELAY_START;
-static Dino prev_dino;
-static Obstacles prev_obstacles;
-static bool has_prev_frame = false;
-static uint32_t last_drawn_score;
+DinoGame sDinoGame;
 
 /* Private functions ---------------------------------------------------------*/
 
 /**
+ * @brief         Определение режима по текущему счёту (смена каждые 100 очков)
+ * @param score   Текущий счёт
+ * @return        Режим солнца или луны
+ */
+static DinoTheme dino_theme(uint32_t score_val)
+{
+    return ((score_val / DINO_THEME_SCORE) % 2) ? DINO_THEME_MOON : DINO_THEME_SUN;
+}
+
+/**
+ * @brief         Применение цветов соответствующего режима
+ * @param theme   Режим солнца или луны
+ */
+static void dino_apply_theme(DinoTheme theme)
+{
+    if (theme == DINO_THEME_MOON) {
+        sDinoGame.color_fg = DINO_COLOR_WHITE;
+        sDinoGame.color_bg = DINO_COLOR_BLACK;
+    } else {
+        sDinoGame.color_fg = DINO_COLOR_BLACK;
+        sDinoGame.color_bg = DINO_COLOR_WHITE;
+    }
+
+    sDinoGame.active_theme = theme;
+}
+
+/**
+ * @brief  Отрисовка иконки солнца или луны
+ */
+static void dino_draw_icon(void)
+{
+    const uint8_t *icon = (sDinoGame.active_theme == DINO_THEME_MOON) ? moon : sun;
+    draw_bitmap(190, 430, icon, 32, 32, sDinoGame.color_fg, sDinoGame.color_bg, 1);
+}
+
+/**
+ * @brief  Отрисовка статических элементов: дорога, счёт и иконка (луны или солнца) 
+ *         — рисуются один раз при старте и рестарте
+ */
+static void dino_draw_static(void)
+{
+    drawText(20, 20, "SCORE:", sDinoGame.color_fg, sDinoGame.color_bg, 2);
+    dino_draw_icon();
+    ClearMassDMA_Fast(DINO_GROUND_LENGHT, DINO_GROUND_LINE_W, DINO_GROUND_LINE_Y, DINO_GROUND_LINE_X, sDinoGame.color_fg); /* дорога */
+}
+
+/**
+ * @brief  Перерисовка игровой зоны при смене режима
+ */
+static void dino_draw_playfield(void)
+{
+    uint16_t play_w = (uint16_t)(DINO_AIR_X + DINO_SPRITE_SZ + 4 - DINO_GROUND_FEET_X);
+    uint16_t clear_len = (uint16_t)(DINO_FIELD_COLS * DINO_CELL_W);
+
+    ClearMassDMA_Fast(clear_len, play_w, DINO_ORIGIN_Y, DINO_GROUND_FEET_X, sDinoGame.color_bg);
+}
+
+/**
+ * @brief  Смена режима солнце/луна при переходе через каждые 100 очков
+ * @return true — режим изменился и экран перерисован
+ */
+static bool dino_update_theme(void)
+{
+    DinoTheme new_theme = dino_theme(sDinoGame.score);
+
+    if (new_theme == sDinoGame.active_theme) {
+        return false;
+    }
+
+    dino_apply_theme(new_theme);
+    ClearMassDMA_Fast(TFT_WIDTH, TFT_HEIGHT, 0, 0, sDinoGame.color_bg);
+    dino_draw_static();
+    dino_draw_playfield();
+    sDinoGame.prev_frame = false;
+    sDinoGame.last_score = UINT32_MAX;
+    return true;
+}
+
+/**
  * @brief  Отрисовка спрайта в клетке игрового поля
  */
-static void dino_draw_sprite_cell(int col, int row, const uint8_t *bmp)
+static void dino_draw_sprite(int col, int row, const uint8_t *bmp)
 {
     uint16_t x;
     uint16_t y;
 
     grid_cell_to_pixel(col, row, DINO_ORIGIN_Y, DINO_CELL_W, DINO_SPRITE_SZ, 1, DINO_GROUND_FEET_X, DINO_AIR_X, &x, &y);
-    draw_bitmap(x, y, bmp, DINO_SPRITE_W, DINO_SPRITE_H, DINO_COLOR_FG, DINO_COLOR_BG, DINO_SPRITE_SCALE);
+    draw_bitmap(x, y, bmp, DINO_SPRITE_W, DINO_SPRITE_H, sDinoGame.color_fg, sDinoGame.color_bg, DINO_SPRITE_SCALE);
 }
 
 /**
@@ -201,18 +267,12 @@ static const uint8_t *dino_pick_cactus(int index)
  */
 static void dino_score(char *buf, uint32_t score_val)
 {
-    char tmp[5];  // пятизначный счётчик
-
     for (int i = 4; i >= 0; i--) {
-        tmp[i] = (char)('0' + (score_val % 10));
+        buf[i] = (char)('0' + (score_val % 10));
         score_val /= 10;
     }
-    /* Конец строки */
-    //tmp[5] = '\0'; 
-    /*Копирование в буфер строки SCORE */
-    strcpy(buf, "\0:");
-    /* Объедение строки SCORE и соответственно значения счёта игры */
-    strcat(buf, tmp);
+
+    buf[5] = '\0';
 }
 
 /**
@@ -222,13 +282,13 @@ static void dino_draw_score(void)
 {
     char score_buf[6]; // строка SCORE: + 00000
 
-    if (score == last_drawn_score) {
+    if (sDinoGame.score == sDinoGame.last_score) {
         return;
     }
 
-    dino_score(score_buf, score);
-    drawText(20, 100, score_buf, DINO_COLOR_FG, DINO_COLOR_BG, 2);
-    last_drawn_score = score;
+    dino_score(score_buf, sDinoGame.score);
+    drawText(20, 100, score_buf, sDinoGame.color_fg, sDinoGame.color_bg, 2);
+    sDinoGame.last_score = sDinoGame.score;
 }
 
 /**
@@ -236,27 +296,17 @@ static void dino_draw_score(void)
  * @param col   Колонка спрайта
  * @param row   Дорожка спрайта
  */
-static void dino_clear_sprite_cell(int col, int row)
+static void dino_clear_sprite(int col, int row)
 {
     uint16_t x;
     uint16_t y;
 
-    if ((col < 0) && (col >= DINO_FIELD_COLS)) {
+    if ((col < 0) || (col >= DINO_FIELD_COLS)) {
         return;
     }
 
     grid_cell_to_pixel(col, row, DINO_ORIGIN_Y, DINO_CELL_W, DINO_SPRITE_SZ, 1, DINO_GROUND_FEET_X, DINO_AIR_X, &x, &y);
-    ClearMassDMA_Fast(DINO_SPRITE_SZ + 1, DINO_SPRITE_SZ + 1, y, x, DINO_COLOR_BG);
-}
-
-/**
- * @brief  Отрисовка статических элементов: дорога — рисуется один раз при старте / рестарте
- */
-static void dino_draw_static(void)
-{
-    drawText(20, 20, "SCORE:", DINO_COLOR_FG, DINO_COLOR_BG, 2);
-    draw_bitmap(200, 450, moon, 32, 32, DINO_COLOR_FG, DINO_COLOR_BG, 1);
-    ClearMassDMA_Fast(DINO_GROUND_LENGHT, DINO_GROUND_LINE_W, DINO_GROUND_LINE_Y, DINO_GROUND_LINE_X, DINO_COLOR_FG); /* дорога */
+    ClearMassDMA_Fast(DINO_SPRITE_SZ + 1, DINO_SPRITE_SZ + 1, y, x, sDinoGame.color_bg);
 }
 
 /**
@@ -265,7 +315,7 @@ static void dino_draw_static(void)
  */
 static void dino_generate_obstacles(Obstacles *obstacles)
 {
-    obstacles->position_col[0] = DINO_FIELD_COLS + (rand() % DINO_FIELD_COLS);
+    obstacles->position_col[0] = DINO_FIELD_COLS;
     obstacles->position_row[0] = rand() % DINO_FIELD_ROWS;
 
     for (int i = 1; i < MAX_OBSTACLES; i++) {
@@ -278,25 +328,25 @@ static void dino_generate_obstacles(Obstacles *obstacles)
  * @brief         Обработка джойстика: прыжок / присед / бег
  * @param  joy    Состояние джойстика
  */
-static void dino_apply_joystick(const JoystickState_t *joy)
+static void dino_apply_joystick(const JoystickState *joy)
 {
     if (joy->x < JOY_LOW)        /* динозаврик в прыжке */
     {
-        dino.jump = true;
-        dino.down = false;
-        dino.position_row = 0;
+        sDinoGame.dino.jump = true;
+        sDinoGame.dino.down = false;
+        sDinoGame.dino.position_row = 0;
     }
     else if (joy->x > JOY_HIGH)  /* динозаврик в приседе */
     {
-        dino.jump = false;
-        dino.down = true;
-        dino.position_row = 1;
+        sDinoGame.dino.jump = false;
+        sDinoGame.dino.down = true;
+        sDinoGame.dino.position_row = 1;
     }
     else                         /* динозаврик в забеге */
     {
-        dino.jump = false;
-        dino.down = false;
-        dino.position_row = 1;
+        sDinoGame.dino.jump = false;
+        sDinoGame.dino.down = false;
+        sDinoGame.dino.position_row = 1;
     }
 }
 
@@ -315,11 +365,11 @@ static void dino_update_obstacles(Obstacles *obstacles)
 
             if (i == 0) 
             {
-                obstacles->position_col[i] = obstacles->position_col[MAX_OBSTACLES - 1] + MIN_OBSTACLE_DISTANCE + (rand() % DINO_FIELD_COLS);
+                obstacles->position_col[i] = obstacles->position_col[MAX_OBSTACLES - 1] + MIN_OBSTACLE_DISTANCE;
             } 
             else 
             {
-                obstacles->position_col[i] = obstacles->position_col[i - 1] + MIN_OBSTACLE_DISTANCE + (rand() % DINO_FIELD_COLS);
+                obstacles->position_col[i] = obstacles->position_col[i - 1] + MIN_OBSTACLE_DISTANCE;
             }
         }
     }
@@ -348,24 +398,25 @@ static bool dino_check_collision(Dino *dino, Obstacles *obstacles)
  */
 static void dino_draw_frame(const Dino *dino, const Obstacles *obstacles)
 {
-    int i;
     const uint8_t *dino_sprite;
+
+    dino_update_theme();
 
     /* Отрисовка счётчика игры */
     dino_draw_score();
 
     /* Затираем только старые позиции прошлого кадра */
-    if (has_prev_frame) {
-        dino_clear_sprite_cell(prev_dino.position_col, prev_dino.position_row);
-        for (i = 0; i < MAX_OBSTACLES; i++) {
-            dino_clear_sprite_cell(prev_obstacles.position_col[i], prev_obstacles.position_row[i]);
+    if (sDinoGame.prev_frame) {
+        dino_clear_sprite(sDinoGame.prev_dino.position_col, sDinoGame.prev_dino.position_row);
+        for (int i = 0; i < MAX_OBSTACLES; i++) {
+            dino_clear_sprite(sDinoGame.prev_obstacles.position_col[i], sDinoGame.prev_obstacles.position_row[i]);
         }
     }
 
     /* Отрисовка динозаврика */
     if (!dino->jump && !dino->down && dino->position_row == 1) 
     {
-        dino_sprite = (frame & 1) ? dino_run2x : dino_run1x;
+        dino_sprite = (sDinoGame.frame & 1) ? dino_run2x : dino_run1x;
     } 
     else if (dino->jump && dino->position_row == 0) 
     {
@@ -373,7 +424,7 @@ static void dino_draw_frame(const Dino *dino, const Obstacles *obstacles)
     } 
     else if (dino->down && dino->position_row == 1) 
     {
-        dino_sprite = (frame & 1) ? dino_duck2x : dino_duck1x;
+        dino_sprite = (sDinoGame.frame & 1) ? dino_duck2x : dino_duck1x;
     } 
     else 
     {
@@ -381,55 +432,56 @@ static void dino_draw_frame(const Dino *dino, const Obstacles *obstacles)
     }
 
     /* Отрисовка положение динозаврика в соответствии от ситуации */
-    dino_draw_sprite_cell(dino->position_col, dino->position_row, dino_sprite);
+    dino_draw_sprite(dino->position_col, dino->position_row, dino_sprite);
 
     /* Отрисовка препядствий - кактусы и птеродактили */
-    for (i = 0; i < MAX_OBSTACLES; i++) {
+    for (int i = 0; i < MAX_OBSTACLES; i++) {
         if (obstacles->position_col[i] < DINO_FIELD_COLS) 
         {
             if (obstacles->position_row[i] == 1)
             {
-                dino_draw_sprite_cell(obstacles->position_col[i], obstacles->position_row[i], dino_pick_cactus(i));
+                dino_draw_sprite(obstacles->position_col[i], obstacles->position_row[i], dino_pick_cactus(i));
             }
             else 
             {
-                const uint8_t *bird = ((frame + (uint32_t)i) & 5) ? bird_bottom : bird_top;
-                dino_draw_sprite_cell(obstacles->position_col[i], obstacles->position_row[i], bird);
+                const uint8_t *bird = ((sDinoGame.frame + (uint32_t)i) & 5) ? bird_bottom : bird_top;
+                dino_draw_sprite(obstacles->position_col[i], obstacles->position_row[i], bird);
             }
         }
     }
 
-    prev_dino = *dino;
-    prev_obstacles = *obstacles;
-    has_prev_frame = true;
+    sDinoGame.prev_dino = *dino;
+    sDinoGame.prev_obstacles = *obstacles;
+    sDinoGame.prev_frame = true;
 }
 
 /**  @brief  Сброс состояния игры */
 static void dino_reset_state(void)
 {
-    dino.position_row = 1;
-    dino.position_col = 0;
-    dino.jump = false;
-    dino.down = false;
-    score = 0;
-    frame = 0;
-    delay_ms = DINO_DELAY_START;
-    has_prev_frame = false;
-    last_drawn_score = UINT32_MAX;
-    dino_generate_obstacles(&obstacles);
+    sDinoGame.dino.position_row = 1;
+    sDinoGame.dino.position_col = 0;
+    sDinoGame.dino.jump = false;
+    sDinoGame.dino.down = false;
+    sDinoGame.score = 0;
+    sDinoGame.frame = 0;
+    sDinoGame.delay_ms = DINO_DELAY_START;
+    sDinoGame.prev_frame = false;
+    sDinoGame.state = DINO_STATE_PLAYING;
+    dino_apply_theme(DINO_THEME_SUN);
+    dino_generate_obstacles(&sDinoGame.obstacles);
 }
 
 /** @brief  Экран Game Over со счётом */
 static void dino_game_over(void)
 {
     /* Отрисовка проигравшего динозаврика */
-    dino_draw_sprite_cell(dino.position_col, dino.position_row, dino_dead);
+    dino_draw_sprite(sDinoGame.dino.position_col, sDinoGame.dino.position_row, dino_dead);
     /* Вывод подписи GAME OVER */
-    drawText(250, 150, "GAME OVER", DINO_COLOR_GO, DINO_COLOR_BG, 3);
+    drawText(250, 150, "GAME OVER", DINO_COLOR_GO, sDinoGame.color_bg, 3);
     /* Отрисовка счётчика игры */
     dino_draw_score();
     /* Вывод подписи с предложением рестарта игры */
-    drawText(210, 155, "BTN = RESTART", DINO_COLOR_FG, DINO_COLOR_BG, 2);
+    drawText(210, 155, "BTN = RESTART", sDinoGame.color_fg, sDinoGame.color_bg, 2);
 }
 
 /* Exported functions --------------------------------------------------------*/
@@ -439,14 +491,14 @@ void DinoGame_Init(void)
     /* Сброс состояния игры */
     dino_reset_state();
     /* Очистка экрана */
-    ClearMassDMA_Fast(480, 320, 0, 0, DINO_COLOR_BG);
+    ClearMassDMA_Fast(TFT_WIDTH, TFT_HEIGHT, 0, 0, sDinoGame.color_bg);
     /* Вывод начала игры */
-    drawText(250, 150, "DINO GAME", DINO_COLOR_FG, DINO_COLOR_BG, 3);
+    drawText(250, 150, "DINO GAME", sDinoGame.color_fg, sDinoGame.color_bg, 3);
     HAL_DelayMs(1000);
     /* Отрисовка статических элементов (дорога) */
     dino_draw_static();
     /* Отриосвка игрового поля */
-    dino_draw_frame(&dino, &obstacles);
+    dino_draw_frame(&sDinoGame.dino, &sDinoGame.obstacles);
 }
 
 /** @brief  Сброс счёта, препятствий и перерисовка поля */
@@ -455,46 +507,65 @@ void DinoGame_Reset(void)
     /* Сброс */
     dino_reset_state();
     /* Очистка экрана */
-    ClearMassDMA_Fast(480, 320, 0, 0, DINO_COLOR_BG);
-    /* Отрисовка статических элементов (дорога) */
+    ClearMassDMA_Fast(TFT_WIDTH, TFT_HEIGHT, 0, 0, sDinoGame.color_bg);
+    /* Отрисовка статических элементов (дорога, иконка луны или солнца) */
     dino_draw_static();
     /* Отриосвка игрового поля */
-    dino_draw_frame(&dino, &obstacles);
+    dino_draw_frame(&sDinoGame.dino, &sDinoGame.obstacles);
 }
 
 /**
- * @brief  Один кадр: ввод джойстика, логика, отрисовка
- * @return 1 — столкновение, 0 — игра продолжается
+ * @brief  Один шаг автомата игры: playing/game over/restart
  */
-bool DinoGame_Tick(void)
+void DinoGame_Tick(void)
 {
-    JoystickState_t joy;
-    /* Чтение положения джойстика и состояния кнопки */
-    Joystick_Read(&joy);
-    /* Обработка джойстика*/
-    dino_apply_joystick(&joy);
-    /* Отриосвка и перемещение препятсвий*/
-    dino_update_obstacles(&obstacles);
-    /* Отриосвка игрового поля */
-    dino_draw_frame(&dino, &obstacles);
+    switch (sDinoGame.state) {
+    case DINO_STATE_PLAYING: {
+        JoystickState joy;
 
-    /* Если динозаврик попал в препятствие*/
-    if (dino_check_collision(&dino, &obstacles)) {
-        /* Обработка конца игры */
-        dino_game_over(); 
-        return 1;
+        /* Чтение положения джойстика и состояния кнопки */
+        Joystick_Read(&joy);
+        /* Обработка джойстика*/
+        dino_apply_joystick(&joy);
+        /* Отриосвка и перемещение препятсвий*/
+        dino_update_obstacles(&sDinoGame.obstacles);
+        /* Отриосвка игрового поля */
+        dino_draw_frame(&sDinoGame.dino, &sDinoGame.obstacles);
+
+        /* Если динозаврик попал в препятствие*/
+        if (dino_check_collision(&sDinoGame.dino, &sDinoGame.obstacles)) {
+            dino_game_over();
+            sDinoGame.state = DINO_STATE_GAME_OVER_WAIT_PRESS;
+            return;
+        }
+
+        sDinoGame.score++;
+        sDinoGame.frame++;
+
+        if (sDinoGame.delay_ms > DINO_DELAY_STEP) {
+            sDinoGame.delay_ms--;
+        }
+
+        HAL_DelayMs(sDinoGame.delay_ms); /* Задержка между кадрами */
+        break;
     }
 
-    score++;
-    frame++;
+    case DINO_STATE_GAME_OVER_WAIT_PRESS:
+        if (Joystick_IsPressed()) {
+            sDinoGame.state = DINO_STATE_GAME_OVER;
+            HAL_DelayMs(50);
+        }
+        break;
 
-    if (delay_ms > DINO_DELAY_STEP) {
-        delay_ms--;
-    }
-    if (delay_ms < DINO_DELAY_MIN) {
-        delay_ms = DINO_DELAY_MIN;
-    }
+    case DINO_STATE_GAME_OVER:
+        if (!Joystick_IsPressed()) {
+            DinoGame_Reset();
+            HAL_DelayMs(50);
+        }
+        break;
 
-    HAL_DelayMs((uint32_t)delay_ms); /* Задержка между кадрами */
-    return 0;
+    default:
+        sDinoGame.state = DINO_STATE_PLAYING;
+        break;
+    }
 }

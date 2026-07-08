@@ -34,7 +34,7 @@ typedef struct {
     bool pressed;
     bool x_error;
     bool y_error;
-} JoystickState_t;
+}JoystickState;
 
 /* Exported function -----------------------------------------------------------*/
 
@@ -48,7 +48,7 @@ void Joystick_Init(void);
  * @param  state  Указатель на структуру результата
  * @return        1 — чтение выполнено, 0 — state == NULL
  */
-int Joystick_Read(JoystickState_t *state);
+int Joystick_Read(JoystickState *state);
 
 /**
  * @brief         Чтение обеих осей и состояния кнопки

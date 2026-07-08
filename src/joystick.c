@@ -93,7 +93,7 @@ bool Joystick_IsPressed(void)
  * @param  state  Указатель на структуру результата
  * @return        1 — чтение выполнено, 0 — state == NULL
  */
-int Joystick_Read(JoystickState_t *state)
+int Joystick_Read(JoystickState *state)
 {
     uint8_t rx_x[3] = {0};
     uint8_t rx_y[3] = {0};
