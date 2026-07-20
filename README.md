@@ -111,7 +111,10 @@ mik32-dino-game/
 ├── src/                    # Исходники прошивки
 │   ├── main.c              # Инициализация периферии и игровой цикл
 │   ├── system_config.c     # Конфигурация тактирования микроконтроллера
-│   ├── dino_game.c         # Логика и отрисовка Dino Game
+│   ├── dino_game.c         # Автомат состояний Dino Game
+│   ├── dino_render.c       # Отрисовка поля, темы, облаков
+│   ├── dino_obstacles.c    # Препятствия: генерация, движение, столкновения
+│   ├── dino_sprites.c      # Спрайты: игровой персонаж, препятствия, иконки 
 │   ├── lcd.c               # Драйвер дисплея на базе ILI9341
 │   ├── bus_spi.c           # Драйвер шины SPI
 │   ├── bgpio.c             # Драйвер GPIO
@@ -131,3 +134,4 @@ mik32-dino-game/
 - [Документация ILI9341](https://cdn-shop.adafruit.com/datasheets/ILI9341.pdf)
 - [Документация MIK32](https://docs.mikron.ru/)
 - [Отладочная плата DIP-MIK32](https://docs.mikron.ru/wiki/boards/dip.html)
+- [Конвертер](https://javl.github.io/image2cpp/)
