@@ -1,0 +1,316 @@
+/**
+ * @file    dino_render.c
+ * @brief   Отрисовка поля, темы и облаков 
+ */
+
+/* Includes ------------------------------------------------------------------*/
+#include "dino_game.h"
+
+/* Private functions ---------------------------------------------------------*/
+/**
+ * @brief         Определение режима по текущему счёту (смена каждые 100 очков)
+ * @param score   Текущий счёт
+ * @return        Режим солнца или луны
+ */
+static DinoTheme dino_theme(uint32_t score_val)
+{
+    return ((score_val / DINO_THEME_SCORE) % 2) ? DINO_THEME_MOON : DINO_THEME_SUN;
+}
+
+/**
+ * @brief       Координаты клетки игрового поля
+ * @param col   Колонка спрайта
+ * @param row   Дорожка спрайта
+ * @param x     Координата по горизонтали
+ * @param y     Координата по вертикали
+ */
+static void dino_cell_to_pixel(int col, int row, uint16_t *x, uint16_t *y)
+{
+    grid_cell_to_pixel(col, row, DINO_ORIGIN_Y, DINO_CELL_W, DINO_SPRITE_SZ, 1, DINO_GROUND_FEET_X, DINO_AIR_X, x, y);
+}
+
+/**
+ * @brief          Формирование строки счёта
+ * @param  buf     Буфер результата
+ * @param  score   Текущий счёт
+ */
+static void dino_score(char *buf, uint32_t score_val)
+{
+    for (int i = 4; i >= 0; i--) 
+    {
+        buf[i] = (char)('0' + (score_val % 10));
+        score_val /= 10;
+    }
+
+    buf[5] = '\0';
+}
+
+/**
+ * @brief      Координата облака вдоль направления бега
+ * @param col  Столбец облака
+ * @return     Координата y
+ */
+static uint16_t dino_cloud_y(int col)
+{
+    return (uint16_t)(DINO_ORIGIN_Y + (uint16_t)col * DINO_CELL_W + (DINO_CELL_W - DINO_CLOUD_W) / 2);
+}
+
+/** @brief  Перерисовка игровой зоны при смене режима */
+static void dino_draw_playfield(void)
+{
+    uint16_t play_w = (uint16_t)(DINO_AIR_X + DINO_SPRITE_SZ + 4 - DINO_GROUND_FEET_X);
+    uint16_t play_l = (uint16_t)(DINO_FIELD_COLS * DINO_CELL_W);
+
+    ClearMassDMA_Fast(play_l, play_w, DINO_ORIGIN_Y, DINO_GROUND_FEET_X, sDinoGame.color_bg);
+}
+
+/* Exported functions --------------------------------------------------------*/
+/**
+ * @brief         Применение цветов соответствующего режима
+ * @param theme   Режим солнца или луны
+ */
+void dino_apply_theme(DinoTheme theme)
+{
+    if (theme == DINO_THEME_MOON) 
+    {
+        sDinoGame.color_fg = DINO_COLOR_WHITE;
+        sDinoGame.color_bg = DINO_COLOR_BLACK;
+    } else 
+    {
+        sDinoGame.color_fg = DINO_COLOR_BLACK;
+        sDinoGame.color_bg = DINO_COLOR_WHITE;
+    }
+
+    sDinoGame.active_theme = theme;
+}
+
+/** @brief  Отрисовка иконки солнца или луны */
+void dino_draw_icon(void)
+{
+    const uint8_t *icon = (sDinoGame.active_theme == DINO_THEME_MOON) ? moon : sun;
+    draw_bitmap(DINO_ICON_X, 430, icon, DINO_SPRITE_W, DINO_SPRITE_H, sDinoGame.color_fg, sDinoGame.color_bg, DINO_SPRITE_SCALE);
+}
+
+/**
+ * @brief      Затирание облака в указанном столбце
+ * @param col  Столбец облака
+ */
+void dino_clear_cloud(int col)
+{
+    if ((col < 0) || (col >= DINO_FIELD_COLS)) return;
+
+    ClearMassDMA_Fast((uint16_t)(DINO_CLOUD_W + 1), (uint16_t)(DINO_CLOUD_H + 1), dino_cloud_y(col), DINO_ICON_X, sDinoGame.color_bg);
+}
+
+/**
+ * @brief      Отрисовка облака в указанном столбце (на уровне иконок)
+ * @param col  Столбец облака
+ */
+void dino_draw_cloud(int col)
+{
+    if ((col < 0) || (col >= DINO_FIELD_COLS)) return;
+
+    draw_bitmap(DINO_ICON_X, dino_cloud_y(col), cloud, DINO_CLOUD_W, DINO_CLOUD_H, sDinoGame.color_fg, sDinoGame.color_bg, DINO_SPRITE_SCALE);
+}
+
+/** @brief  Сдвиг облаков на один шаг, как у препятствий */
+void dino_update_clouds(void)
+{
+    for (int i = 0; i < MAX_CLOUDS; i++) 
+    {
+        sDinoGame.cloud_col[i]--;
+
+        if (sDinoGame.cloud_col[i] < 0) 
+        {
+            int ref = (i == 0) ? (MAX_CLOUDS - 1) : (i - 1);
+            sDinoGame.cloud_col[i] = sDinoGame.cloud_col[ref] + MIN_CLOUD_DISTANCE + (int)(rand() % MIN_CLOUD_DISTANCE);
+        }
+    }
+}
+
+/** @brief  Начальная расстановка облаков */
+void dino_generate_clouds(void)
+{
+    sDinoGame.cloud_col[0] = DINO_FIELD_COLS;
+    for (int i = 1; i < MAX_CLOUDS; i++) 
+    {
+        sDinoGame.cloud_col[i] = sDinoGame.cloud_col[i - 1] + MIN_CLOUD_DISTANCE;
+    }
+
+    for (int i = 0; i < MAX_CLOUDS; i++) 
+    {
+        sDinoGame.prev_cloud_col[i] = sDinoGame.cloud_col[i];
+    }
+}
+
+/**
+ * @brief  Отрисовка статических элементов: дорога, счёт и иконка (луны или солнца)
+ *         — рисуются один раз при старте и рестарте
+ */
+void dino_draw_static(void)
+{
+    /* Отрисовка счёта */
+    drawText(20, 20, "SCORE:", sDinoGame.color_fg, sDinoGame.color_bg, DINO_FONT_SCALE);
+    /* Отрисовка иконки режима луна или солнце */
+    dino_draw_icon();
+    /* Отрисовка дороги */
+    ClearMassDMA_Fast(DINO_GROUND_LENGHT, DINO_GROUND_LINE_W, DINO_GROUND_LINE_Y, DINO_GROUND_LINE_X, sDinoGame.color_fg);
+}
+
+/**
+ * @brief  Смена режима солнце/луна при переходе через каждые 100 очков
+ * @return true — режим изменился и экран перерисован
+ */
+bool dino_update_theme(void)
+{
+    DinoTheme new_theme = dino_theme(sDinoGame.score);
+
+    if (new_theme == sDinoGame.active_theme) return false;
+
+    dino_apply_theme(new_theme);
+    ClearMassDMA_Fast(TFT_WIDTH, TFT_HEIGHT, 0, 0, sDinoGame.color_bg);
+    dino_draw_static();
+    dino_draw_playfield();
+    sDinoGame.prev_frame = false;
+    return true;
+}
+
+/**
+ * @brief         Отрисовка спрайта в клетке игрового поля
+ * @param col     Колонка
+ * @param row     Дорожка
+ * @param width   Ширина
+ * @param height  Длина
+ * @param bmp     Указатель на массив спрайта
+ * @param x_off   Смещение по вертикали
+ */
+void dino_draw_sprite(int col, int row, int width, int height,
+                      const uint8_t *bmp, int16_t x_off)
+{
+    uint16_t x, y;
+
+    dino_cell_to_pixel(col, row, &x, &y);
+    draw_bitmap((uint16_t)((int)x + x_off), y, bmp, width, height, sDinoGame.color_fg, sDinoGame.color_bg, DINO_SPRITE_SCALE);
+}
+
+/**
+ * @brief         Очистка спрайта в клетке игрового поля
+ * @param col     Колонка
+ * @param row     Дорожка
+ * @param width   Ширина
+ * @param height  Длина
+ * @param x_off   Смещение по вертикали
+ */
+void dino_clear_sprite(int col, int row, int width, int height, int16_t x_off)
+{
+    uint16_t x, y;
+
+    if ((col < 0) || (col >= DINO_FIELD_COLS)) return;
+    
+    dino_cell_to_pixel(col, row, &x, &y);
+    ClearMassDMA_Fast((uint16_t)(width + 1), (uint16_t)(height + 1), y, (uint16_t)((int)x + x_off), sDinoGame.color_bg);
+}
+
+/** @brief  Отрисовка счёта в нижней части экрана (только при изменении) */
+void dino_draw_score(void)
+{
+    char score_buf[6]; /* строка SCORE: + 00000 */
+
+    if (sDinoGame.score == sDinoGame.last_score) return;
+
+    dino_score(score_buf, sDinoGame.score);
+    drawText(20, 100, score_buf, sDinoGame.color_fg, sDinoGame.color_bg, DINO_FONT_SCALE);
+    sDinoGame.last_score = sDinoGame.score;
+}
+
+/** @brief  Экран Game Over со счётом */
+void dino_game_over(void)
+{
+    /* Отрисовка проигравшего динозаврика */
+    dino_draw_sprite(sDinoGame.dino.position_col, sDinoGame.dino.position_row, DINO_SPRITE_W, DINO_SPRITE_H, dino_dead, 0);
+    /* Вывод подписи GAME OVER */
+    drawText(250, 150, "GAME OVER", DINO_COLOR_GO, sDinoGame.color_bg, DINO_FONT_SCALE + 1);
+    /* Отрисовка счётчика игры */
+    dino_draw_score();
+    /* Вывод подписи с предложением рестарта игры */
+    drawText(210, 155, "BTN = RESTART", sDinoGame.color_fg, sDinoGame.color_bg, DINO_FONT_SCALE);
+}
+
+/**
+ * @brief             Отрисовка одного кадра игры
+ * @param  dino       Состояние динозавра
+ * @param  obstacles  Указатель на массив препятствий
+ */
+void dino_draw_frame(const Dino *dino, const Obstacles *obstacles)
+{
+    const uint8_t *dino_sprite;
+
+    dino_update_theme();
+    /* Отрисовка счётчика игры */
+    dino_draw_score();
+
+    /* Затираем только старые позиции прошлого кадра */
+    if (sDinoGame.prev_frame) {
+        if (sDinoGame.prev_dino.down) 
+        {
+            dino_clear_sprite(sDinoGame.prev_dino.position_col, sDinoGame.prev_dino.position_row, DINO_SPRITE_W, DINO_DUCK_H, 0);
+        } else 
+        {
+            dino_clear_sprite(sDinoGame.prev_dino.position_col, sDinoGame.prev_dino.position_row, DINO_SPRITE_W, DINO_SPRITE_H, 0);
+        }
+
+        for (int i = 0; i < MAX_OBSTACLES; i++) 
+        {
+            dino_clear_obstacle(&sDinoGame.prev_obstacles, i);
+        }
+
+        for (int i = 0; i < MAX_CLOUDS; i++)
+        {
+            dino_clear_cloud(sDinoGame.prev_cloud_col[i]);
+        }
+    }
+
+    /* Отрисовка положения динозаврика в соответствии от ситуации */
+    if (!dino->jump && !dino->down && dino->position_row == 1) 
+    {
+        dino_sprite = (sDinoGame.frame & 1) ? dino_run2x : dino_run1x;
+        dino_draw_sprite(dino->position_col, dino->position_row, DINO_SPRITE_W, DINO_SPRITE_H, dino_sprite, 0);
+    } 
+    else if (dino->jump && dino->position_row == 0) 
+    {
+        dino_draw_sprite(dino->position_col, dino->position_row, DINO_SPRITE_W, DINO_SPRITE_H, dino_run2x, 0);
+    } 
+    else if (dino->down && dino->position_row == 1)
+    {
+        dino_sprite = (sDinoGame.frame & 1) ? dino_duck2x : dino_duck1x;
+        dino_draw_sprite(dino->position_col, dino->position_row, DINO_SPRITE_W, DINO_DUCK_H, dino_sprite, 0);
+    } 
+    else 
+    {
+        dino_draw_sprite(dino->position_col, dino->position_row, DINO_SPRITE_W, DINO_SPRITE_H, dino_run1x, 0);
+    }
+
+    /* Отрисовка препятствий — кактусы и птеродактили */
+    for (int i = 0; i < MAX_OBSTACLES; i++)
+    {
+        if (obstacles->position_col[i] < DINO_FIELD_COLS) 
+        {
+            dino_draw_obstacle(obstacles, i);
+        }
+    }
+
+    /* Облака на уровне иконок солнца/луны */
+    for (int i = 0; i < MAX_CLOUDS; i++) 
+    {
+        dino_draw_cloud(sDinoGame.cloud_col[i]);
+    }
+    dino_draw_icon();
+
+    sDinoGame.prev_dino = *dino;
+    sDinoGame.prev_obstacles = *obstacles;
+    for (int i = 0; i < MAX_CLOUDS; i++) 
+    {
+        sDinoGame.prev_cloud_col[i] = sDinoGame.cloud_col[i];
+    }
+    sDinoGame.prev_frame = true;
+}
