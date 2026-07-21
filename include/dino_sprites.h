@@ -1,6 +1,6 @@
 /**
  * @file    dino_sprites.h
- * @brief   Битмап-спрайты Dino Game
+ * @brief   Спрайты Dino Game
  */
 
 #ifndef DINO_SPRITES_H
@@ -39,9 +39,11 @@ extern const uint8_t dino_run2x[];
 extern const uint8_t dino_duck1x [];
 /* положение динозаврика в присяде 2 (32x20px) */
 extern const uint8_t dino_duck2x [];
-/* облако (43x32px) */ 
-extern const uint8_t  cloud [];
-
-
+/* облако 1 (43x17px) */ 
+extern const uint8_t  cloud1 [];
+/* облако 2 (62x17px)*/
+extern const uint8_t cloud2 [];
+/* облако 3 (62x17px)*/
+extern const uint8_t cloud3 [];
 
 #endif /* __DINO_SPRITES_H__ */

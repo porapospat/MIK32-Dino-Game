@@ -18,6 +18,12 @@ static ObstacleKind dino_pick_obstacle_kind(void)
     }
 }
 
+/** @brief  Случайное расстояние до следующего препятствия, клетки */
+static int dino_pick_obstacle_distance(void)
+{
+    return MIN_OBSTACLE_DISTANCE + (rand() % (MAX_OBSTACLE_DISTANCE - MIN_OBSTACLE_DISTANCE + 1));
+}
+
 /**
  * @brief           Установка типа и дорожки препятствия
  * @param obstacles Указатель на массив препятствий
@@ -91,7 +97,7 @@ void dino_generate_obstacles(Obstacles *obstacles)
 
     for (int i = 1; i < MAX_OBSTACLES; i++) 
     {
-        obstacles->position_col[i] = obstacles->position_col[i - 1] + MIN_OBSTACLE_DISTANCE;
+        obstacles->position_col[i] = obstacles->position_col[i - 1] + dino_pick_obstacle_distance();
         dino_set_obstacle(obstacles, i, dino_pick_obstacle_kind());
     }
 }
@@ -112,10 +118,10 @@ void dino_update_obstacles(Obstacles *obstacles)
 
             if (i == 0) 
             {
-                obstacles->position_col[i] = obstacles->position_col[MAX_OBSTACLES - 1] + MIN_OBSTACLE_DISTANCE;
+                obstacles->position_col[i] = obstacles->position_col[MAX_OBSTACLES - 1] + dino_pick_obstacle_distance();
             } else 
             {
-                obstacles->position_col[i] = obstacles->position_col[i - 1] + MIN_OBSTACLE_DISTANCE;
+                obstacles->position_col[i] = obstacles->position_col[i - 1] + dino_pick_obstacle_distance();
             }
         }
     }

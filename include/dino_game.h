@@ -36,9 +36,12 @@
 #define DINO_BIRD_LOW_OFFSET  -17       /* смещение низкой птицы вниз, px */
 #define DINO_DUCK_H           20        /* высота спрайта динозавра в приседе */
 
-#define DINO_ICON_X           190       /* вертикаль иконок солнца/луны и облака */
-#define DINO_CLOUD_W          43        /* ширина спрайта облака */
-#define DINO_CLOUD_H          32        /* высота спрайта облака */
+#define DINO_SMALL_CLOUD_W    43        /* ширина малого облака */
+#define DINO_BIG_CLOUD_W      62        /* ширина большого облака */
+#define DINO_CLOUD_H          17        /* высота спрайта облака */
+#define DINO_ICON_X           210       /* вертикаль иконок солнца/луны */
+#define DINO_CLOUD_X          185       /* вертикаль облаков */
+#define DINO_CLOUD_PERIOD     2         /* сдвиг облака раз в N кадров */
 
 #define DINO_COLOR_WHITE      0xFFFF    /* белый цвет */
 #define DINO_COLOR_BLACK      0x0000    /* черный цвет*/
@@ -46,7 +49,7 @@
 
 #define DINO_THEME_SCORE      100       /* смена режима каждые 100 очков */
 
-#define DINO_DELAY_START      100        /* начальная задержка  */
+#define DINO_DELAY_START      100       /* начальная задержка  */
 #define DINO_DELAY_MIN        10        /* минимальная задержка */
 #define DINO_DELAY_STEP       50        /* порог, ниже которого скорость растёт */
 
@@ -122,14 +125,16 @@ void dino_update_clouds(void);
 /**
  * @brief      Отрисовка облака в указанном столбце (на уровне иконок)
  * @param col  Столбец облака
+ * @param index Индекс облака (тип спрайта)
  */
-void dino_draw_cloud(int col);
+void dino_draw_cloud(int col, uint32_t index);
 
 /**
  * @brief      Затирание облака в указанном столбце
  * @param col  Столбец облака
+ * @param index Индекс облака (тип спрайта)
  */
-void dino_clear_cloud(int col);
+void dino_clear_cloud(int col, uint32_t index);
 
 /* Obstacles */
 /**

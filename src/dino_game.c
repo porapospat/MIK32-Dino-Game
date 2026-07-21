@@ -57,7 +57,7 @@ void DinoGame_Init(void)
     /* Очистка экрана */
     ClearMassDMA_Fast(TFT_WIDTH, TFT_HEIGHT, 0, 0, sDinoGame.color_bg);
     /* Вывод начала игры */
-    drawText(250, 150, "DINO GAME", sDinoGame.color_fg, sDinoGame.color_bg, DINO_FONT_SCALE + 1);
+    drawText(270, 150, "DINO GAME", sDinoGame.color_fg, sDinoGame.color_bg, DINO_FONT_SCALE + 1);
     HAL_DelayMs(1000);
     /* Отрисовка статических элементов (дорога) */
     dino_draw_static();
