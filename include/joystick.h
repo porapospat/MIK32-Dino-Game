@@ -24,6 +24,11 @@
 #define JOY_LOW       1000
 #define JOY_HIGH      3000
 
+/* пауза для нажатий на кнопку джойстика против дребезга */
+#define JOY_DEBOUNCE_MS   30   
+/* пауза между чтением осей АЦП */
+#define JOY_ADC_PAUSE_MS  1    
+
 /* Exported variables --------------------------------------------------------*/
 
 /* Exported type --------------------------------------------------------*/
@@ -46,14 +51,13 @@ void Joystick_Init(void);
 /**
  * @brief         Чтение обеих осей и состояния кнопки
  * @param  state  Указатель на структуру результата
- * @return        1 — чтение выполнено, 0 — state == NULL
+ * @return        1 — чтение выполнено, иначе 0 
  */
 int Joystick_Read(JoystickState *state);
 
 /**
- * @brief         Чтение обеих осей и состояния кнопки
- * @param  state  Указатель на структуру результата
- * @return        1 — чтение выполнено, 0 — state == NULL
+ * @brief  Проверка нажатия кнопки джойстика (с проверкой на дребезг)
+ * @return true — кнопка нажата, false — отпущена
  */
 bool Joystick_IsPressed(void);
 

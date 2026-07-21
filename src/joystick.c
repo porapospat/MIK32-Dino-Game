@@ -5,16 +5,29 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "joystick.h"
+#include "mik32_hal.h"
 
+/* Define --------------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Команды SPI: канал 6 — ось X, канал 7 — ось Y внешнего АЦП */
 static const uint8_t master_output_ch6[] = {0b00000111, 0b10000000, 0};
 static const uint8_t master_output_ch7[] = {0b00000111, 0b11000000, 0};
 
-/* состояние кнопки */
+/* стабильное состояние кнопки: 1 — нажата, 0 — отпущена */
 static uint8_t joy_button = 0;
+/* флаг: пришло прерывание - перечитать кнопку для проверки дребезга */
+static volatile uint8_t joy_btn_dirty = 0;
 
 /* Private functions ---------------------------------------------------------*/
+
+/**
+ * @brief  Чтение уровня кнопки (активный уровень — низкий)
+ * @return 1 — нажата, 0 — отпущена
+ */
+static uint8_t joystick_button_level(void)
+{
+    return (HAL_GPIO_ReadPin(GPIO_JOY_BT, JOY_BUTTON) == 0) ? 1 : 0;
+}
 
 /**
  * @brief  Выбор внешнего АЦП джойстика на шине SPI (CS0)
@@ -35,7 +48,7 @@ static void joystick_adc_unselect(void)
 
 /**
  * @brief           Чтение одной оси джойстика по SPI
- * @param  tx_buf   Буфер команды 
+ * @param  tx_buf   Буфер команды
  * @param  rx_buf   Буфер приёма 3 байт ответа
  * @return          12-битное значение оси
  */
@@ -44,15 +57,13 @@ static uint16_t joystick_read_axis(const uint8_t *tx_buf, uint8_t *rx_buf)
     HAL_StatusTypeDef SPI_Status;
 
     __HAL_SPI_ENABLE(&hspi1);
-    joystick_adc_select();  
+    joystick_adc_select();
 
     /* Передача и приём данных */
     SPI_Status = HAL_SPI_Exchange(&hspi1, (uint8_t *)tx_buf, rx_buf, 3, SPI_TIMEOUT_DEFAULT);
-    if (SPI_Status != HAL_OK) {
-        HAL_SPI_ClearError(&hspi1);
-    }
+    if (SPI_Status != HAL_OK) HAL_SPI_ClearError(&hspi1);
 
-    joystick_adc_unselect(); // Выбрать внешний АЦП CS
+    joystick_adc_unselect();
     __HAL_SPI_DISABLE(&hspi1);
 
     /* Сборка 12 бит: младший байт — rx[0], старшие 4 бита — rx[1] */
@@ -71,20 +82,30 @@ void Joystick_Init(void)
 
     gpio.Pin = JOY_BUTTON;
     gpio.Mode = HAL_GPIO_MODE_GPIO_INPUT;
-    gpio.Pull = HAL_GPIO_PULL_NONE;
+    gpio.Pull = HAL_GPIO_PULL_UP; 
     HAL_GPIO_Init(GPIO_JOY_BT, &gpio);
 
-    HAL_GPIO_InitInterruptLine(GPIO_MUX_PORT0_14_LINE_6, GPIO_INT_MODE_CHANGE);  // ENC_But
+    joy_button = joystick_button_level();
+    joy_btn_dirty = 0;
+
+    HAL_GPIO_InitInterruptLine(GPIO_MUX_PORT0_14_LINE_6, GPIO_INT_MODE_CHANGE);
     HAL_EPIC_MaskLevelSet(HAL_EPIC_GPIO_IRQ_MASK);
     HAL_IRQ_EnableInterrupts();
 }
 
 /**
- * @brief  Проверка нажатия кнопки джойстика
+ * @brief  Проверка нажатия кнопки джойстика с проверкой на дребезг 
  * @return true — кнопка нажата, false — отпущена
  */
 bool Joystick_IsPressed(void)
 {
+    if (joy_btn_dirty) 
+    {
+        joy_btn_dirty = 0;
+        HAL_DelayMs(JOY_DEBOUNCE_MS);
+        joy_button = joystick_button_level();
+    }
+
     return joy_button != 0;
 }
 
@@ -98,12 +119,10 @@ int Joystick_Read(JoystickState *state)
     uint8_t rx_x[3] = {0};
     uint8_t rx_y[3] = {0};
 
-    if (state == NULL) {
-        return 0;
-    }
+    if (state == NULL) return 0;
 
     state->x = joystick_read_axis(master_output_ch6, rx_x);
-    for (uint32_t i = 0; i < 1000; i++);
+    HAL_DelayMs(JOY_ADC_PAUSE_MS);
     state->y = joystick_read_axis(master_output_ch7, rx_y);
     state->x_error = false;
     state->y_error = false;
@@ -112,7 +131,7 @@ int Joystick_Read(JoystickState *state)
 }
 
 /**
- * @brief  Обработчик прерывания кнопки джойстика 
+ * @brief  Обработчик прерывания кнопки джойстика
  */
 void trap_handler(void)
 {
@@ -120,8 +139,9 @@ void trap_handler(void)
         return;
     }
 
-    if (HAL_GPIO_LineInterruptState(GPIO_LINE_6)) {
-        joy_button = (joy_button == 0) ? 1 : 0;  // переключить состояние
+    if (HAL_GPIO_LineInterruptState(GPIO_LINE_6)) 
+    {
+        joy_btn_dirty = 1;
         GPIO_IRQ->CLEAR = 1 << 6;
     }
 }
