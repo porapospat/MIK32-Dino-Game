@@ -11,11 +11,11 @@
 #include <stdint.h>
 
 /* Define --------------------------------------------------------------------*/
-#define MAX_OBSTACLES         6     /* макс. количество препятствий в очереди */
+#define MAX_OBSTACLES         4     /* макс. количество препятствий в очереди */
 #define MIN_OBSTACLE_DISTANCE 2     /* мин. расстояние между препятствиями, клетки */
 #define MAX_OBSTACLE_DISTANCE 4     /* макс. расстояние между препятствиями, клетки */
 #define MAX_CLOUDS            3     /* количество облаков на экране */
-#define MIN_CLOUD_DISTANCE    4     /* мин. расстояние между облаками, клетки */
+#define MIN_CLOUD_DISTANCE    5     /* мин. расстояние между облаками, клетки */
 #define MAX_CLOUD_DISTANCE    10    /* макс. расстояние между облаками, клетки */
 #define DINO_FIELD_COLS       11    /* видимых столбцов (420 px / DINO_CELL_W) */
 #define DINO_FIELD_ROWS       2     /* дорожки: 0 — воздух, 1 — земля */

@@ -137,9 +137,28 @@ void dino_clear_cloud(int col, uint32_t index)
 }
 
 /**
+ * @brief       Затирание только «хвоста» облака после сдвига на 1 клетку
+ * @param col   Столбец облака до сдвига
+ * @param index Индекс облака (тип спрайта)
+ */
+static void dino_clear_cloud_tail(int col, uint32_t index)
+{
+    uint16_t width = dino_cloud_w((int)index);
+    uint16_t old;
+    uint16_t tail;
+
+    if ((col < 0) || (col >= DINO_FIELD_COLS)) return;
+
+    old = dino_cloud_y(col, width);
+    /* правый край старого спрайта длиной в один шаг клетки */
+    tail = (uint16_t)(old + width + 1 - DINO_CELL_W);
+    ClearMassDMA_Fast(DINO_CELL_W, (uint16_t)(DINO_CLOUD_H + 1), tail, DINO_CLOUD_X, sDinoGame.color_bg);
+}
+
+/**
  * @brief       Отрисовка облака в указанном столбце (ниже уровня иконок)
  * @param col   Столбец облака
- * @param index Индекс облака (тип спрайта)
+ * @param index Индекс облака 
  */
 void dino_draw_cloud(int col, uint32_t index)
 {
@@ -148,6 +167,34 @@ void dino_draw_cloud(int col, uint32_t index)
     if ((col < 0) || (col >= DINO_FIELD_COLS)) return;
 
     draw_bitmap(DINO_CLOUD_X, dino_cloud_y(col, width), dino_pick_cloud((int)index), width, DINO_CLOUD_H, sDinoGame.color_fg, sDinoGame.color_bg, DINO_SPRITE_SCALE);
+}
+
+/**
+ * @brief       Перерисовка облака только при сдвиге, clear — хвост или полный
+ * @param index Индекс облака (тип облака)
+ */
+static void dino_redraw_cloud(uint32_t index)
+{
+    int prev = sDinoGame.prev_cloud_col[index];
+    int cur = sDinoGame.cloud_col[index];
+
+    if (!sDinoGame.prev_frame) 
+    {
+        /* первый кадр / смена темы — полная отрисовка */
+        dino_draw_cloud(cur, index);
+    } else if (cur != prev) 
+    {
+        if (prev == cur + 1) {
+            /* обычный сдвиг на 1 клетку — затереть только хвост */
+            dino_clear_cloud_tail(prev, index);
+        } else {
+            /* скачок — полное затирание старой позиции */
+            dino_clear_cloud(prev, index);
+        }
+        dino_draw_cloud(cur, index);
+    }
+
+    sDinoGame.prev_cloud_col[index] = cur;
 }
 
 /** @brief  Сдвиг облаков на один шаг */
@@ -305,11 +352,7 @@ void dino_draw_frame(const Dino *dino, const Obstacles *obstacles)
         {
             dino_clear_obstacle(&sDinoGame.prev_obstacles, i);
         }
-
-        for (int i = 0; i < MAX_CLOUDS; i++)
-        {
-            dino_clear_cloud(sDinoGame.prev_cloud_col[i], i);
-        }
+        /* облака чистятся точечно в dino_redraw_cloud — только при сдвиге */
     }
 
     /* Отрисовка положения динозаврика в соответствии от ситуации */
@@ -341,18 +384,14 @@ void dino_draw_frame(const Dino *dino, const Obstacles *obstacles)
         }
     }
 
-    /* Облака */
-    // for (int i = 0; i < MAX_CLOUDS; i++) 
-    // {
-    //     dino_draw_cloud(sDinoGame.cloud_col[i], i);
-    // }
+    /* Отрисовка облаков */
+    for (int i = 0; i < MAX_CLOUDS; i++)
+    {
+        dino_redraw_cloud((uint32_t)i);
+    }
     dino_draw_icon();
 
     sDinoGame.prev_dino = *dino;
     sDinoGame.prev_obstacles = *obstacles;
-    // for (int i = 0; i < MAX_CLOUDS; i++) 
-    // {
-    //     sDinoGame.prev_cloud_col[i] = sDinoGame.cloud_col[i];
-    // }
     sDinoGame.prev_frame = true;
 }

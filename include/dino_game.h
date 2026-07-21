@@ -49,9 +49,9 @@
 
 #define DINO_THEME_SCORE      100       /* смена режима каждые 100 очков */
 
-#define DINO_DELAY_START      100       /* начальная задержка  */
-#define DINO_DELAY_MIN        10        /* минимальная задержка */
-#define DINO_DELAY_STEP       50        /* порог, ниже которого скорость растёт */
+#define DINO_DELAY_START      120       /* начальная задержка  */
+#define DINO_DELAY_MIN        20        /* минимальная задержка */
+#define DINO_DELAY_STEP       90        /* порог, ниже которого скорость растёт */
 
 /* Exported variables --------------------------------------------------------*/
 extern DinoGame sDinoGame;
