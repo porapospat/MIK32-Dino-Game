@@ -125,7 +125,7 @@ void dino_draw_icon(void)
 /**
  * @brief       Затирание облака в указанном столбце
  * @param col   Столбец облака
- * @param index Индекс облака (тип спрайта)
+ * @param index Тип облака
  */
 void dino_clear_cloud(int col, uint32_t index)
 {
@@ -139,7 +139,7 @@ void dino_clear_cloud(int col, uint32_t index)
 /**
  * @brief       Затирание только «хвоста» облака после сдвига на 1 клетку
  * @param col   Столбец облака до сдвига
- * @param index Индекс облака (тип спрайта)
+ * @param index Тип облака 
  */
 static void dino_clear_cloud_tail(int col, uint32_t index)
 {
@@ -158,7 +158,7 @@ static void dino_clear_cloud_tail(int col, uint32_t index)
 /**
  * @brief       Отрисовка облака в указанном столбце (ниже уровня иконок)
  * @param col   Столбец облака
- * @param index Индекс облака 
+ * @param index Тип облака 
  */
 void dino_draw_cloud(int col, uint32_t index)
 {
@@ -171,7 +171,7 @@ void dino_draw_cloud(int col, uint32_t index)
 
 /**
  * @brief       Перерисовка облака только при сдвиге, clear — хвост или полный
- * @param index Индекс облака (тип облака)
+ * @param index Тип облака 
  */
 static void dino_redraw_cloud(uint32_t index)
 {
